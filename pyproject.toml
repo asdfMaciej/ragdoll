@@ -1,0 +1,13 @@
+[project]
+name = "ragdoll"
+version = "0.1.0"
+description = "simple CLI retriever for RAG applications"
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+ragdoll = "ragdoll:main"
+
+[build-system]
+requires = ["uv_build>=0.8.13,<0.9.0"]
+build-backend = "uv_build"
