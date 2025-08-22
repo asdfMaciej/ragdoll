@@ -11,6 +11,8 @@ from rich.console import Console
 from rich.pretty import pprint
 from rich.progress import track
 from uuid6 import uuid7
+from ragdoll.database import Database
+
 
 app = App(help_flags=["--help", "-h"])
 console = Console()
@@ -100,6 +102,10 @@ def list_files(
     per_page
         Number of items per page.
     """
+    with Database() as db:
+            # Here you would add the actual logic to query db.conn
+            # and build your Pydantic response model.
+            print("Successfully connected to the database to list files.")
     response = _list_files(page=page, per_page=per_page)
     _pretty_print_pydantic(response)
 
