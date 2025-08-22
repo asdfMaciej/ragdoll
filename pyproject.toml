@@ -5,6 +5,7 @@ description = "simple CLI retriever for RAG applications"
 requires-python = ">=3.13"
 dependencies = [
     "cyclopts>=3.22.5",
+    "pydantic>=2.11.7",
     "rich>=14.1.0",
     "uuid6>=2025.0.1",
 ]

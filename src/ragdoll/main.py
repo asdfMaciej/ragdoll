@@ -3,7 +3,9 @@ import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
-
+from ragdoll.commands import search as _search 
+from ragdoll.commands import add as _add 
+from ragdoll.commands import list_files as _list_files
 from cyclopts import App
 from rich.console import Console
 from rich.pretty import pprint
@@ -13,21 +15,10 @@ from uuid6 import uuid7
 app = App(help_flags=["--help", "-h"])
 console = Console()
 
-
-def _generate_file_record(path: Path, metadata: Optional[dict] = None) -> dict:
-    """Generates a mock database record for a file."""
-    return {
-        "id": str(uuid7()),
-        "path": str(path.resolve()),
-        "indexed_at": None,
-        "content_hash": "sha256-mock-hash-value",
-        "metadata": metadata or {},
-    }
-
-def _pretty_print_json(data: dict):
-    """Uses rich's pprint to print JSON-like structures nicely."""
-    pprint(data, expand_all=True)
-
+def _pretty_print_pydantic(model):
+    """Helper to dump a Pydantic model to a dict and pretty-print it."""
+    # `mode='json'` ensures types like UUID and datetime are serialized correctly.
+    pprint(model.model_dump(mode='json'), expand_all=True)
 
 # --- CLI Commands ---
 
@@ -61,9 +52,9 @@ def add(
             console.print("[bold red]Error: Invalid JSON string in --metadata.[/bold red]")
             raise sys.exit(1)
 
-    file_record = _generate_file_record(path, parsed_metadata)
+    file_record = _add(path, parsed_metadata)
     console.print("\n[green]Success![/green] File tracked. Run 'ragdoll index' to process it.")
-    _pretty_print_json(file_record)
+    _pretty_print_pydantic(file_record)
 
 
 @app.command
@@ -109,31 +100,8 @@ def list_files(
     per_page
         Number of items per page.
     """
-    mock_response = {
-        "files": [
-            {
-                "id": str(uuid7()),
-                "path": "path/to/file.md",
-                "indexed_at": None,
-                "content_hash": "sha256-mock-hash-value",
-                "metadata": {"id": "x-y-z"},
-            },
-            {
-                "id": str(uuid7()),
-                "path": "path/to/another.txt",
-                "indexed_at": datetime.now().isoformat(),
-                "content_hash": "sha256-another-hash",
-                "metadata": {},
-            },
-        ],
-        "pagination": {
-            "page": page,
-            "per_page": per_page,
-            "page_count": 1,
-            "total_count": 2,
-        },
-    }
-    _pretty_print_json(mock_response)
+    response = _list_files(page=page, per_page=per_page)
+    _pretty_print_pydantic(response)
 
 
 @app.command
@@ -152,23 +120,9 @@ def search(
         Number of results to return.
     """
     console.print(f'-> Searching for: "[bold yellow]{query}[/bold yellow]" (limit: {limit})')
-
-    mock_response = {
-        "results": [
-            {
-                "id": "uuidv7-from-db",
-                "path": "path/to/file.md",
-                "indexed_at": datetime.now().isoformat(),
-                "content_hash": "sha256-mock-hash-value",
-                "metadata": {"id": "x-y-z"},
-                "score": 0.93214,
-            }
-        ],
-        "pagination": None,
-    }
-
+    response = _search(query, limit)
     console.print("\n[green]Found results:[/green]")
-    _pretty_print_json(mock_response)
+    _pretty_print_pydantic(response)
 
 
 @app.command
