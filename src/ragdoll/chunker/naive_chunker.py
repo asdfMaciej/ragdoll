@@ -21,7 +21,7 @@ class NaiveChunker:
         chunks = []
         start = 0
         step = self.chunk_size - self.overlap
-        
+
         # The loop continues creating chunks until the entire text is covered.
         while True:
             end = start + self.chunk_size
@@ -30,8 +30,7 @@ class NaiveChunker:
 
             if end >= len(text):
                 break
-            
-            start += step
-            
-        return chunks
 
+            start += step
+
+        return chunks

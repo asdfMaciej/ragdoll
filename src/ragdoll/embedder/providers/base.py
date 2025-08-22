@@ -15,7 +15,9 @@ class BaseEmbedder(ABC):
             model_name: The name of the embedding model to use (e.g., 'text-embedding-3-small').
         """
         self.model_name = model_name
-        logger.info(f"Initialized Embedding provider: {self.__class__.__name__} with model: {self.model_name}")
+        logger.info(
+            f"Initialized Embedding provider: {self.__class__.__name__} with model: {self.model_name}"
+        )
 
     @property
     @abstractmethod
@@ -97,4 +99,3 @@ class BaseEmbedder(ABC):
             Exception: For underlying API or processing errors.
         """
         pass
-

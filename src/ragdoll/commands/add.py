@@ -1,7 +1,8 @@
 from ragdoll.schemas import FileRecord
 from typing import Optional
-from uuid6 import uuid7 
+from uuid6 import uuid7
 from pathlib import Path
+
 
 def add(path: Path, metadata: Optional[dict] = None) -> FileRecord:
     """Simulates adding a file to the database and returns a FileRecord."""

@@ -1,9 +1,10 @@
 import os
 import random
 from .base import BaseEmbedder
-import logging 
+import logging
 
 logger = logging.getLogger(__name__)
+
 
 class MockEmbedder(BaseEmbedder):
     """A mock implementation of EmbeddingProvider for testing purposes."""
@@ -43,7 +44,9 @@ class MockEmbedder(BaseEmbedder):
         embeddings = []
         for path in image_paths:
             if not os.path.exists(path):
-                raise FileNotFoundError(f"Mock provider error: Image not found at {path}")
+                raise FileNotFoundError(
+                    f"Mock provider error: Image not found at {path}"
+                )
             # Create a vector based on the file path hash
             random.seed(hash(path))
             embeddings.append([random.random() for _ in range(self._dimension)])

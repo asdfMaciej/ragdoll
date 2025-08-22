@@ -1,8 +1,8 @@
-
 from ragdoll.schemas import FileRecord, FileListResponse, Pagination
-from uuid6 import uuid7 
+from uuid6 import uuid7
 from datetime import datetime
 from pathlib import Path
+
 
 def list_files(page: int, per_page: int) -> FileListResponse:
     """Simulates fetching paginated file records from the database."""
@@ -25,5 +25,7 @@ def list_files(page: int, per_page: int) -> FileListResponse:
     ]
     return FileListResponse(
         files=mock_db_records,
-        pagination=Pagination(page=page, per_page=per_page, page_count=1, total_count=2),
+        pagination=Pagination(
+            page=page, per_page=per_page, page_count=1, total_count=2
+        ),
     )

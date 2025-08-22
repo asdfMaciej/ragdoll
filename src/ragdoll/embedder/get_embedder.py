@@ -4,10 +4,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 def get_embedder(config_string: str) -> BaseEmbedder:
-    logger.info(f"Attempting to create Embedding provider for config: '{config_string}'")
+    logger.info(
+        f"Attempting to create Embedding provider for config: '{config_string}'"
+    )
     try:
-        provider_prefix, model_name = config_string.strip().lower().split('/', 1)
+        provider_prefix, model_name = config_string.strip().lower().split("/", 1)
     except ValueError:
         raise ValueError(
             f"Invalid Embedding configuration format: '{config_string}'. "
@@ -24,4 +27,6 @@ def get_embedder(config_string: str) -> BaseEmbedder:
 
         return MockEmbedder(model_name=model_name)
     else:
-        raise ValueError(f"Unsupported Embedding provider prefix: '{provider_prefix}'. Supported prefixes: 'openai'.")
+        raise ValueError(
+            f"Unsupported Embedding provider prefix: '{provider_prefix}'. Supported prefixes: 'openai'."
+        )

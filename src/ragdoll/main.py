@@ -1,28 +1,29 @@
 import json
 import sys
-from datetime import datetime
 from pathlib import Path
 from typing import Optional
-from ragdoll.commands import search as _search 
-from ragdoll.commands import add as _add 
+from ragdoll.commands import search as _search
+from ragdoll.commands import add as _add
 from ragdoll.commands import list_files as _list_files
 from cyclopts import App
 from rich.console import Console
 from rich.pretty import pprint
 from rich.progress import track
-from uuid6 import uuid7
 from ragdoll.database import Database
 
 
 app = App(help_flags=["--help", "-h"])
 console = Console()
 
+
 def _pretty_print_pydantic(model):
     """Helper to dump a Pydantic model to a dict and pretty-print it."""
     # `mode='json'` ensures types like UUID and datetime are serialized correctly.
-    pprint(model.model_dump(mode='json'), expand_all=True)
+    pprint(model.model_dump(mode="json"), expand_all=True)
+
 
 # --- CLI Commands ---
+
 
 @app.command
 def add(
@@ -51,11 +52,15 @@ def add(
             parsed_metadata = json.loads(metadata)
             console.print(f"  - With metadata: {parsed_metadata}")
         except json.JSONDecodeError:
-            console.print("[bold red]Error: Invalid JSON string in --metadata.[/bold red]")
+            console.print(
+                "[bold red]Error: Invalid JSON string in --metadata.[/bold red]"
+            )
             raise sys.exit(1)
 
     file_record = _add(path, parsed_metadata)
-    console.print("\n[green]Success![/green] File tracked. Run 'ragdoll index' to process it.")
+    console.print(
+        "\n[green]Success![/green] File tracked. Run 'ragdoll index' to process it."
+    )
     _pretty_print_pydantic(file_record)
 
 
@@ -75,14 +80,17 @@ def index(
         Re-index already processed files, running in a worker-like mode.
     """
     if refresh:
-        console.print(f"-> Starting worker to re-index all files...")
+        console.print("-> Starting worker to re-index all files...")
     else:
-        console.print(f"-> Indexing up to [bold yellow]{limit}[/bold yellow] new files...")
+        console.print(
+            f"-> Indexing up to [bold yellow]{limit}[/bold yellow] new files..."
+        )
 
     # Simulate a long-running process using rich's tracker
     total_files = limit if not refresh else 100  # Mock total
     for _ in track(range(total_files), description="Processing files..."):
         import time
+
         time.sleep(0.05)
 
     console.print("\n[green]Indexing complete![/green]")
@@ -102,11 +110,11 @@ def list_files(
     per_page
         Number of items per page.
     """
-    with Database() as db:
+    with Database() as _:
         # Here you would add the actual logic to query db.conn
         # and build your Pydantic response model.
         print("Successfully connected to the database to list files.")
-    
+
     response = _list_files(page=page, per_page=per_page)
     _pretty_print_pydantic(response)
 
@@ -128,10 +136,13 @@ def search(
     """
     from ragdoll.embedder.get_embedder import get_embedder
     from ragdoll.config import EMBEDDING_PROVIDER
+
     embedder = get_embedder(EMBEDDING_PROVIDER)  # Using configured embedder
     res = embedder.embed_text("Sample text to embed")  # Example usage
     console.print(len(res))
-    console.print(f'-> Searching for: "[bold yellow]{query}[/bold yellow]" (limit: {limit})')
+    console.print(
+        f'-> Searching for: "[bold yellow]{query}[/bold yellow]" (limit: {limit})'
+    )
     response = _search(query, limit)
     console.print("\n[green]Found results:[/green]")
     _pretty_print_pydantic(response)
@@ -151,11 +162,13 @@ def delete(
     console.print(f"-> Preparing to delete tracking for: [bold red]{path}[/bold red]")
 
     response = input("Are you sure you want to delete this file from the index? [y/N] ")
-    if response.lower() != 'y':
+    if response.lower() != "y":
         console.print("Operation cancelled.")
         sys.exit(0)
 
-    console.print(f"[green]Success![/green] File '{path}' has been removed from tracking.")
+    console.print(
+        f"[green]Success![/green] File '{path}' has been removed from tracking."
+    )
 
 
 if __name__ == "__main__":

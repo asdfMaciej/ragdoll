@@ -1,1 +1,1 @@
-from .naive_chunker import NaiveChunker
+from .naive_chunker import NaiveChunker as NaiveChunker

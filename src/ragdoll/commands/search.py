@@ -1,7 +1,8 @@
 from ragdoll.schemas import SearchResponse, SearchResult
-from uuid6 import uuid7 
+from uuid6 import uuid7
 from datetime import datetime
 from pathlib import Path
+
 
 def search(query: str, limit: int) -> SearchResponse:
     """Simulates performing a vector search and returning structured results."""

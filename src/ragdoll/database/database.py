@@ -8,20 +8,22 @@ import sqlite_vec
 class Database:
     """
     Manages the SQLite database connection and schema for the Ragdoll application.
-    
+
     This class handles:
     - Connecting to the database file.
     - Loading the sqlite-vec extension.
     - Creating the necessary tables and indexes if they don't exist.
     - Providing a connection object for database operations.
-    
+
     It is recommended to use this class as a context manager.
     """
-    
-    def __init__(self, db_path: Path = Path("ragdoll.sqlite3"), embedding_dim: int = 1024):
+
+    def __init__(
+        self, db_path: Path = Path("ragdoll.sqlite3"), embedding_dim: int = 1024
+    ):
         """
         Initializes the Database object and sets up the connection.
-        
+
         Args:
             db_path: The path to the SQLite database file.
             embedding_dim: The dimension of the vectors to be stored.
@@ -33,22 +35,22 @@ class Database:
 
         # Ensure the parent directory for the database file exists
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         try:
             self.conn = sqlite3.connect(self.db_path)
             self.conn.row_factory = sqlite3.Row  # Access columns by name
-            
+
             # Load the sqlite-vec extension
             self.conn.enable_load_extension(True)
             sqlite_vec.load(self.conn)
             self.conn.enable_load_extension(False)
-            
+
             # Enable foreign key support
             self.conn.execute("PRAGMA foreign_keys = ON;")
-            
+
             # Create the schema
             self._create_schema()
-            
+
         except sqlite3.Error as e:
             print(f"Database error: {e}")
             if self.conn:

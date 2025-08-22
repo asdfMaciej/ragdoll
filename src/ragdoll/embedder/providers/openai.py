@@ -10,10 +10,7 @@ from .base import BaseEmbedder
 logger = logging.getLogger(__name__)
 
 # This provider is now specialized for models that support the 'dimensions' parameter.
-SUPPORTED_MODELS = {
-    "text-embedding-3-small",
-    "text-embedding-3-large"
-}
+SUPPORTED_MODELS = {"text-embedding-3-small", "text-embedding-3-large"}
 
 # The dimension is now a fixed constant for this provider implementation.
 FIXED_EMBEDDING_DIMENSION = 1024
@@ -69,16 +66,18 @@ class OpenAIEmbedder(BaseEmbedder):
         try:
             # The 'dimensions' parameter is now always passed with the fixed value.
             response = self.client.embeddings.create(
-                model=self.model_name,
-                input=processed_texts,
-                dimensions=self._dimension
+                model=self.model_name, input=processed_texts, dimensions=self._dimension
             )
             embeddings = [item.embedding for item in response.data]
-            logger.debug(f"Successfully generated {len(embeddings)} text embeddings using {self.model_name}.")
+            logger.debug(
+                f"Successfully generated {len(embeddings)} text embeddings using {self.model_name}."
+            )
             return embeddings
         except openai.APIError as e:
             logger.error(f"OpenAI API error during text embedding: {e}")
-            raise Exception("Failed to generate text embeddings due to an API error.") from e
+            raise Exception(
+                "Failed to generate text embeddings due to an API error."
+            ) from e
 
     def embed_image(self, image_path: str) -> list[float]:
         """This functionality is not supported by standard OpenAI text embedding models."""
