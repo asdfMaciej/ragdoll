@@ -3,7 +3,11 @@ name = "ragdoll"
 version = "0.1.0"
 description = "simple CLI retriever for RAG applications"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "cyclopts>=3.22.5",
+    "rich>=14.1.0",
+    "uuid6>=2025.0.1",
+]
 
 [project.scripts]
 ragdoll = "ragdoll:main"
