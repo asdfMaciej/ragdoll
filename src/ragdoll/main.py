@@ -103,9 +103,10 @@ def list_files(
         Number of items per page.
     """
     with Database() as db:
-            # Here you would add the actual logic to query db.conn
-            # and build your Pydantic response model.
-            print("Successfully connected to the database to list files.")
+        # Here you would add the actual logic to query db.conn
+        # and build your Pydantic response model.
+        print("Successfully connected to the database to list files.")
+    
     response = _list_files(page=page, per_page=per_page)
     _pretty_print_pydantic(response)
 
@@ -125,6 +126,11 @@ def search(
     limit
         Number of results to return.
     """
+    from ragdoll.embedder.get_embedder import get_embedder
+    from ragdoll.config import EMBEDDING_PROVIDER
+    embedder = get_embedder(EMBEDDING_PROVIDER)  # Using configured embedder
+    res = embedder.embed_text("Sample text to embed")  # Example usage
+    console.print(len(res))
     console.print(f'-> Searching for: "[bold yellow]{query}[/bold yellow]" (limit: {limit})')
     response = _search(query, limit)
     console.print("\n[green]Found results:[/green]")
