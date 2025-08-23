@@ -22,6 +22,73 @@ this brought me to an idea:
 3. modular tools are [cool](https://en.wikipedia.org/wiki/Unix_philosophy)  
 4. I know how to do RAG well
 
+
+## usage
+
+early idea for the API
+
+### add a file
+
+```bash
+ragdoll add "path/to/file.md" --metadata='{"id": "x-y-z"}'
+```
+
+### index your files
+
+```bash
+ragdoll index --limit=20  # up to 20 files
+ragdoll index --refresh   # run as a worker
+```
+
+### list your files
+
+```bash
+ragdoll list
+```
+
+```json
+{
+	"files": [{
+		"id": "uuidv7",
+		"path": "path/to/file.md",
+		"indexed_at": null,
+		"content_hash": "hash",
+		"metadata": {"id": "x-y-z"}
+	}],
+	"pagination": {
+		"page": 1, "per_page": 20, "page_count": 1, "total_count": 1
+	}	
+}
+```
+
+### retrieve
+
+```bash
+ragdoll search "what's ragdoll?" --limit=1
+```
+
+```json
+{
+	"results": [
+	{
+		"id": "uuidv7",
+		"path": "path/to/file.md",
+		"indexed_at": null,
+		"content_hash": "hash",
+		"metadata": {"id": "x-y-z"},
+		"score": 0.93214
+	}
+	],
+	"pagination": null
+}
+```
+
+### remove your files
+
+```bash
+ragdoll delete "path/to/file.md"
+```
+
 ---
 
 thanks @TypicalAM for the name
