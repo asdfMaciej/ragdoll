@@ -1,31 +1,42 @@
 # ragdoll
 
-simple CLI retriever for RAG applications (**WIP**)
+simple CLI retriever for RAG applications 
+
+**Note:** WIP - it doesn't work yet
 
 
 ## manifesto
 
-so recently I've ordered a N100-based server to build a homelab 
+recently I've ordered a N100-based server to build a homelab 
 
-as an Obsidian fan, I've wanted to use it for backuping my personal notes   
-(and as a bonus, use the notes for a RAG-based personal assistant)
+as a note-taking enthusiast, I want to use the server for a RAG-based personal assistant
 
 however, resources are scarce on this machine:   
-I'll be stuck with an entry-level CPU with 16 GB RAM
+I'll be stuck with an entry-level CPU and 16 GB RAM
 
-this brought me to an idea:
 
-1. most of the available RAG setups are resource-intensive  
-   I don't want to waste my RAM on databases or MQs - or disk space on copies of data;
-2. there's no need for a full RAG solution   
+- most of the available RAG setups are resource-intensive  
+I don't want to run DB/MQ services for this
+
+- there's also no need for a full RAG solution   
    tool calling only requires a retriever
-3. modular tools are [cool](https://en.wikipedia.org/wiki/Unix_philosophy)  
-4. I know how to do RAG well
+- [modular tools are cool](https://en.wikipedia.org/wiki/Unix_philosophy)  
+- I know how to do RAG well
+
+introduce: ragdoll
 
 
-## usage
+## install
 
-early idea for the API
+currently only available in dev mode via `uv` - clone the repo and run:
+
+```
+uv run ragdoll --help
+```
+
+## use
+
+index, retrieve and manage your files via commands
 
 ### add a file
 
@@ -89,6 +100,11 @@ ragdoll search "what's ragdoll?" --limit=1
 ragdoll delete "path/to/file.md"
 ```
 
+## license
+
+ragdoll is licensed under the Apache-2.0 License.
+
 ---
 
-thanks @TypicalAM for the name
+
+shoutout @TypicalAM for the cool name
