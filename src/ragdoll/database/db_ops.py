@@ -264,3 +264,52 @@ def get_chunks_for_file(conn: sqlite3.Connection, file_id: str) -> List[ChunkRec
         results.append(ChunkRecord.model_validate(data))
     
     return results
+
+class _RawChunkSearchResult(FileRecord):
+    """Internal model to hold joined data from files and chunks."""
+    chunk_index: int
+    content: Optional[str]
+    distance: float
+
+def vector_search_raw_chunks(
+    conn: sqlite3.Connection, query_vector: List[float], limit: int
+) -> List[_RawChunkSearchResult]:
+    """
+    Performs a vector search and returns a flat list of matching chunks
+    joined with their parent file's metadata.
+
+    Args:
+        conn: The database connection.
+        query_vector: The embedding of the search query.
+        limit: The maximum number of raw chunks to return.
+
+    Returns:
+        A list of internal result objects, unsorted by file.
+    """
+    query_vector_bytes = _vector_to_bytes(query_vector)
+
+    query = """
+        SELECT
+            f.*,
+            c.chunk_index,
+            c.content,
+            c.distance
+        FROM chunks c
+        JOIN files f ON c.file_id = f.id
+        WHERE c.embedding MATCH ? AND k = ?
+        ORDER BY c.distance
+        LIMIT ?
+    """
+    cursor = conn.cursor()
+    cursor.execute(query, (query_vector_bytes, limit, limit))
+    rows = cursor.fetchall()
+
+    results = []
+    for row in rows:
+        data = dict(row)
+        # The 'metadata' from the DB is a string, so we load it as JSON.
+        # This handles cases where metadata is NULL or an empty string.
+        data['metadata'] = json.loads(data.get('metadata') or '{}')
+        results.append(_RawChunkSearchResult.model_validate(data))
+
+    return results

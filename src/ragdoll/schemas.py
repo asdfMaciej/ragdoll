@@ -58,29 +58,6 @@ class FileListResponse(BaseModel):
     pagination: Pagination
 
 
-class SearchResult(FileRecord):
-    """
-    Represents a single search result, extending a FileRecord with a score.
-    """
-
-    score: float = Field(
-        ...,
-        description="The relevance score of the search result (higher is better).",
-        examples=[0.93214],
-    )
-
-
-class SearchResponse(BaseModel):
-    """
-    The response model for the `search` command.
-    """
-
-    results: List[SearchResult]
-    pagination: Optional[Pagination] = Field(
-        None,
-        description="Pagination for search results (often null for vector search).",
-    )
-
 class ChunkRecord(BaseModel):
     """Represents a single text chunk from a file."""
     chunk_index: int = Field(..., description="The 0-based index of the chunk.")
@@ -94,4 +71,39 @@ class FilePreviewResponse(FileRecord):
     """The response model for the `preview` command, including chunks."""
     chunks: List[ChunkRecord] = Field(
         ..., description="A list of text chunks generated from the file."
+    )
+
+class ChunkSearchResult(BaseModel):
+    """Represents a single matching chunk within a search result."""
+    score: float = Field(..., description="Relevance score of this specific chunk.")
+    chunk_index: int = Field(..., description="The 0-based index of the chunk.")
+    content: Optional[str] = Field(None, description="The text content of the chunk, if stored.")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SearchResult(FileRecord):
+    """
+    Represents a single search result, extending a FileRecord with a score
+    and information about the chunks that matched the query.
+    """
+    score: float = Field(
+        ...,
+        description="The aggregated relevance score for the file (e.g., max score of its chunks).",
+        examples=[0.93214],
+    )
+    matched_chunks: Optional[List[ChunkSearchResult]] = Field(
+        None, description="A list of the specific  that matched the query."
+    )
+
+
+class SearchResponse(BaseModel):
+    """
+    The response model for the `search` command.
+    """
+
+    results: List[SearchResult]
+    pagination: Optional[Pagination] = Field(
+        None,
+        description="Pagination for search results (often null for vector search).",
     )

@@ -26,7 +26,7 @@ console = Console()
 def _pretty_print_pydantic(model):
     """Helper to dump a Pydantic model to a dict and pretty-print it."""
     # `mode='json'` ensures types like UUID and datetime are serialized correctly.
-    pprint(model.model_dump(mode="json"), expand_all=True)
+    pprint(model.model_dump(mode="json", serialize_as_any=True), expand_all=True)
 
 
 # --- CLI Commands ---
@@ -186,26 +186,28 @@ def search(
     query: str,
     *,
     limit: int = 5,
+    with_chunks: bool = False,
 ):
     """Search for content across all indexed files.
+
+    Results are ranked by the file's overall relevance.
 
     Parameters
     ----------
     query
         The search query string.
     limit
-        Number of results to return.
+        Number of file results to return.
+    with_chunks
+        Include the specific matching text chunks in the results.
     """
-    from ragdoll.embedder.get_embedder import get_embedder
-    from ragdoll.config import EMBEDDING_PROVIDER
-
-    embedder = get_embedder(EMBEDDING_PROVIDER)  # Using configured embedder
-    res = embedder.embed_text("Sample text to embed")  # Example usage
-    console.print(len(res))
     console.print(
         f'-> Searching for: "[bold yellow]{query}[/bold yellow]" (limit: {limit})'
     )
-    response = _search(query, limit)
+
+    response = _search(query, limit, with_chunks)
+    print(response.results[0])
+
     console.print("\n[green]Found results:[/green]")
     _pretty_print_pydantic(response)
 
