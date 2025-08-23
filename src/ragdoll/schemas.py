@@ -17,6 +17,9 @@ class FileRecord(BaseModel):
         examples=["0198d3b9-5a6d-7770-a4ab-ddacd32320b0"],
     )
     path: Path = Field(..., description="Absolute path to the file on disk.")
+    is_dirty: bool = Field(
+        ..., description="True if the file has changed and needs re-indexing."
+    )
     indexed_at: Optional[datetime] = Field(
         None,
         description="Timestamp (UTC) when the file was last indexed. Null if never indexed.",
@@ -76,4 +79,19 @@ class SearchResponse(BaseModel):
     pagination: Optional[Pagination] = Field(
         None,
         description="Pagination for search results (often null for vector search).",
+    )
+
+class ChunkRecord(BaseModel):
+    """Represents a single text chunk from a file."""
+    chunk_index: int = Field(..., description="The 0-based index of the chunk.")
+    content: Optional[str] = Field(None, description="The text content of the chunk.")
+    embedding: Optional[List[float]] = Field(None, description="The vector embedding of the chunk.")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FilePreviewResponse(FileRecord):
+    """The response model for the `preview` command, including chunks."""
+    chunks: List[ChunkRecord] = Field(
+        ..., description="A list of text chunks generated from the file."
     )

@@ -59,7 +59,7 @@ class Database:
 
     def _create_schema(self):
         """
-        Creates the database schema (tables and indexes) if they don't exist.
+        Creates the database schema (tables, indexes, and triggers) if they don't exist.
         This method is idempotent.
         """
         with self.conn:
@@ -70,11 +70,22 @@ class Database:
                     id           TEXT PRIMARY KEY, -- UUIDv7
                     path         TEXT NOT NULL UNIQUE,
                     content_hash TEXT NOT NULL,
+                    is_dirty     INTEGER NOT NULL DEFAULT 1, -- Boolean (1=true, 0=false)
                     indexed_at   TEXT,             -- ISO 8601 datetime string
                     metadata     TEXT,             -- JSON string
                     created_at   TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     updated_at   TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
                 );
+            """)
+
+            # Trigger to automatically update the 'updated_at' timestamp on files table
+            self.conn.execute("""
+                CREATE TRIGGER IF NOT EXISTS trigger_files_updated_at
+                AFTER UPDATE ON files
+                FOR EACH ROW
+                BEGIN
+                    UPDATE files SET updated_at = CURRENT_TIMESTAMP WHERE id = OLD.id;
+                END;
             """)
 
             # Index on file paths for fast lookups
@@ -83,10 +94,7 @@ class Database:
             """)
 
             # Virtual Table: chunks
-            # Stores processed text chunks and their vector embeddings using sqlite-vec.
-            # The 'content' column is optional as requested.
-            # NOTE: Foreign keys cannot be enforced on virtual tables.
-            #       The link is logical, maintained by the application.
+            # ... (rest of the method is unchanged) ...
             self.conn.execute(f"""
                 CREATE VIRTUAL TABLE IF NOT EXISTS chunks USING vec0(
                     embedding   FLOAT[{self.embedding_dim}], -- The vector embedding

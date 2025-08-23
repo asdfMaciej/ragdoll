@@ -5,11 +5,18 @@ from typing import Optional
 from ragdoll.commands import search as _search
 from ragdoll.commands import add as _add
 from ragdoll.commands import list_files as _list_files
+from ragdoll.commands import delete as _delete
+from ragdoll.commands import index as _index
+from ragdoll.commands import preview as _preview
 from cyclopts import App
 from rich.console import Console
 from rich.pretty import pprint
 from rich.progress import track
 from ragdoll.database import Database
+from ragdoll.database.db_ops import get_dirty_files
+from ragdoll.chunker import NaiveChunker
+from ragdoll.embedder.get_embedder import get_embedder
+from ragdoll.config import EMBEDDING_PROVIDER
 
 
 app = App(help_flags=["--help", "-h"])
@@ -75,25 +82,48 @@ def index(
     Parameters
     ----------
     limit
-        The maximum number of files to process.
+        The maximum number of files to process in this run.
     refresh
-        Re-index already processed files, running in a worker-like mode.
+        Run as a persistent worker to re-index files marked as dirty.
     """
     if refresh:
-        console.print("-> Starting worker to re-index all files...")
-    else:
-        console.print(
-            f"-> Indexing up to [bold yellow]{limit}[/bold yellow] new files..."
+        # As requested, raise an error for the unimplemented worker mode.
+        raise NotImplementedError(
+            "The --refresh worker mode is not yet implemented."
         )
 
-    # Simulate a long-running process using rich's tracker
-    total_files = limit if not refresh else 100  # Mock total
-    for _ in track(range(total_files), description="Processing files..."):
-        import time
+    console.print(
+        f"-> Checking for up to [bold yellow]{limit}[/bold yellow] files to index..."
+    )
 
-        time.sleep(0.05)
+    with Database() as db:
+        # 1. Get the list of files that need processing.
+        files_to_index = get_dirty_files(db.conn, limit=limit)
 
-    console.print("\n[green]Indexing complete![/green]")
+        if not files_to_index:
+            console.print("[bold green]No new or changed files to index. All up to date![/bold green]")
+            return
+
+        console.print(f"-> Found [bold cyan]{len(files_to_index)}[/bold cyan] file(s) to process.")
+
+        # 2. Set up the tools needed for processing.
+        chunker = NaiveChunker(
+            chunk_size=100,
+            overlap=20
+        )
+        embedder = get_embedder(EMBEDDING_PROVIDER)
+
+        # 3. Process each file, showing a progress bar.
+        #    rich.track iterates over the list and displays progress automatically.
+        for file_record in track(files_to_index, description="Processing files..."):
+            _index(
+                file_record=file_record,
+                db_conn=db.conn,
+                chunker=chunker,
+                embedder=embedder,
+            )
+
+    console.print(f"\n[green]Indexing complete! Processed {len(files_to_index)} file(s).[/green]")
 
 
 @app.command(name="list")
@@ -110,13 +140,45 @@ def list_files(
     per_page
         Number of items per page.
     """
-    with Database() as _:
-        # Here you would add the actual logic to query db.conn
-        # and build your Pydantic response model.
-        print("Successfully connected to the database to list files.")
-
+    # This now calls the real implementation
     response = _list_files(page=page, per_page=per_page)
     _pretty_print_pydantic(response)
+
+
+@app.command
+def preview(
+    path: Path,
+    *,
+    show_embedding: bool = False,
+):
+    """Show detailed metadata and text chunks for a single file.
+
+    Parameters
+    ----------
+    path
+        The path of the file to preview.
+    show_embedding
+        Display the full embedding vector for each chunk.
+    """
+    console.print(f"-> Fetching preview for: [bold cyan]{path}[/bold cyan]")
+    response = _preview(path)
+
+    if not response:
+        console.print(f"[bold red]Error: File not found in index at '{path}'[/bold red]")
+        sys.exit(1)
+
+    response_data = response.model_dump(mode="json")
+
+    if not show_embedding:
+        if 'chunks' in response_data and response_data['chunks']:
+            for chunk in response_data['chunks']:
+                embedding_list = chunk.get('embedding')
+                if embedding_list:
+                    summary = f"<{len(embedding_list)} dims> [{embedding_list[0]:.4f}, {embedding_list[1]:.4f}, ...]"
+                    chunk['embedding'] = summary
+
+    # 3. Pretty-print the (potentially modified) dictionary.
+    pprint(response_data, expand_all=True)
 
 
 @app.command
@@ -166,9 +228,16 @@ def delete(
         console.print("Operation cancelled.")
         sys.exit(0)
 
-    console.print(
-        f"[green]Success![/green] File '{path}' has been removed from tracking."
-    )
+    rows_deleted = _delete(path)
+
+    if rows_deleted > 0:
+        console.print(
+            f"\n[green]Success![/green] File '{path}' has been removed from the index."
+        )
+    else:
+        console.print(
+            f"\n[yellow]Info:[/yellow] File '{path}' was not found in the index. Nothing to do."
+        )
 
 
 if __name__ == "__main__":
