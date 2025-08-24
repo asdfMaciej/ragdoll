@@ -210,6 +210,7 @@ def search(
 
     console.print("\n[green]Found results:[/green]")
     _pretty_print_pydantic(response)
+    return response
 
 
 @app.command

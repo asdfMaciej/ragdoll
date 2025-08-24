@@ -24,3 +24,13 @@ dev = [
     "pytest>=8.4.1",
     "ruff>=0.12.10",
 ]
+
+[tool.pytest.ini_options]
+markers = [
+    "e2e: marks tests as end-to-end, which might rely on external APIs",
+]
+addopts = "-m 'not e2e'"
+
+log_cli = true
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s"
